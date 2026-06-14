@@ -2,7 +2,7 @@ services:
   - type: web
     name: image-caption-api
     runtime: python
-    buildCommand: pip install -r requirements.txt && python -c "import nltk; nltk.download('wordnet'); nltk.download('omw-1.4')"
+    buildCommand: pip install -r requirements.txt && python -c "import nltk; nltk.download('wordnet'); nltk.download('omw-1.4')" && python download_model.py
     startCommand: uvicorn src.api:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION

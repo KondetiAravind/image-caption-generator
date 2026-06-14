@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Image Caption Generator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
+  header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 2rem; text-align: center; border-bottom: 1px solid #2a2a4a; }
+  header h1 { font-size: 2rem; color: #7c83fd; margin-bottom: 0.5rem; }
+  header p  { color: #888; font-size: 0.95rem; }
+  .container { max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+  .upload-box { border: 2px dashed #7c83fd; border-radius: 16px; padding: 3rem 2rem;
+                text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a2e; }
+  .upload-box:hover { border-color: #a29bfe; background: #1e1e35; }
+  .upload-box input { display: none; }
+  .upload-box .icon { font-size: 3rem; margin-bottom: 1rem; }
+  .upload-box p { color: #888; }
+  #preview { width: 100%; max-height: 400px; object-fit: contain; border-radius: 12px; margin-top: 1.5rem; display: none; }
+  .btn { background: linear-gradient(135deg, #7c83fd, #a29bfe); color: white;
+         border: none; padding: 0.85rem 2.5rem; border-radius: 50px; font-size: 1rem;
+         cursor: pointer; margin-top: 1.5rem; width: 100%; transition: opacity 0.2s; }
+  .btn:hover { opacity: 0.9; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .results { margin-top: 2rem; display: none; }
+  .card { background: #1a1a2e; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid #2a2a4a; }
+  .card h3 { color: #7c83fd; margin-bottom: 0.75rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+  .caption-text { font-size: 1.1rem; color: #e0e0e0; line-height: 1.6; }
+  .translations { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 0.75rem; }
+  .trans-item { background: #0f0f1a; border-radius: 8px; padding: 0.75rem; }
+  .trans-item .lang { font-size: 0.75rem; color: #7c83fd; margin-bottom: 0.3rem; }
+  .trans-item .text { font-size: 0.9rem; }
+  .heatmap img { width: 100%; border-radius: 8px; }
+  .spinner { display: none; text-align: center; padding: 2rem; color: #7c83fd; font-size: 1.1rem; }
+  .metrics { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
+  .metric-badge { background: #0f0f1a; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid #2a2a4a; }
+  .metric-badge span { color: #7c83fd; font-weight: bold; }
+  .api-url { background: #1a1a2e; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; border: 1px solid #2a2a4a; display:flex; align-items:center; gap:0.5rem; }
+  .api-url input { background: none; border: none; color: #a29bfe; flex:1; font-family: monospace; outline: none; font-size:0.9rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🖼 Image Caption Generator</h1>
+  <p>InceptionV3 + Bahdanau Attention + LSTM &nbsp;·&nbsp; Trained on Flickr30k</p>
+</header>
+<div class="container">
+
+  <div class="api-url">
+    🔌 <input id="apiUrl" value="https://image-caption-api.onrender.com" placeholder="Backend API URL"/>
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem">
+    <h3>Model Performance</h3>
+    <div class="metrics">
+      <div class="metric-badge">BLEU-1 Beam <span>0.4637</span></div>
+      <div class="metric-badge">BLEU-4 Beam <span>0.0820</span></div>
+      <div class="metric-badge">BLEU-1 Greedy <span>0.3592</span></div>
+      <div class="metric-badge">METEOR <span>0.2750</span></div>
+      <div class="metric-badge">Vocab <span>6,988</span></div>
+      <div class="metric-badge">Dataset <span>Flickr30k</span></div>
+    </div>
+  </div>
+
+  <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+    <input type="file" id="fileInput" accept="image/*" onchange="onFileSelect(event)"/>
+    <div class="icon">📷</div>
+    <p>Click to upload an image</p>
+    <p style="font-size:0.8rem;margin-top:0.5rem">JPG, PNG, WEBP supported</p>
+  </div>
+  <img id="preview"/>
+  <button class="btn" id="generateBtn" onclick="generateCaption()" disabled>✨ Generate Caption</button>
+  <div class="spinner" id="spinner">⏳ Generating caption, please wait...</div>
+
+  <div class="results" id="results">
+    <div class="card"><h3>📝 Beam Search Caption (k=5)</h3><div class="caption-text" id="beamCaption"></div></div>
+    <div class="card"><h3>📝 Greedy Caption</h3><div class="caption-text" id="greedyCaption"></div></div>
+    <div class="card"><h3>🌍 Translations</h3><div class="translations" id="translations"></div></div>
+    <div class="card" id="heatmapCard" style="display:none"><h3>🔥 Attention Heatmap</h3><img id="heatmapImg"/></div>
+  </div>
+</div>
+<script>
+let selectedFile = null;
+function onFileSelect(e) {
+  selectedFile = e.target.files[0];
+  if (!selectedFile) return;
+  const reader = new FileReader();
+  reader.onload = ev => { const p=document.getElementById('preview'); p.src=ev.target.result; p.style.display='block'; };
+  reader.readAsDataURL(selectedFile);
+  document.getElementById('generateBtn').disabled = false;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('heatmapCard').style.display = 'none';
+}
+async function generateCaption() {
+  if (!selectedFile) return;
+  const apiUrl = document.getElementById('apiUrl').value.trim();
+  const btn=document.getElementById('generateBtn'), spinner=document.getElementById('spinner'), results=document.getElementById('results');
+  btn.disabled=true; spinner.style.display='block'; results.style.display='none';
+  try {
+    const fd=new FormData(); fd.append('file', selectedFile);
+    const resp = await fetch(`${apiUrl}/caption?beam_size=5&translate=true`, {method:'POST',body:fd});
+    if (!resp.ok) throw new Error(await resp.text());
+    const data = await resp.json();
+    document.getElementById('beamCaption').textContent   = data.beam   || '—';
+    document.getElementById('greedyCaption').textContent = data.greedy || '—';
+    const transDiv=document.getElementById('translations'); transDiv.innerHTML='';
+    if (data.translations) {
+      for (const [lang,text] of Object.entries(data.translations))
+        transDiv.innerHTML+=`<div class="trans-item"><div class="lang">${lang}</div><div class="text">${text}</div></div>`;
+    }
+    results.style.display='block';
+    const fd2=new FormData(); fd2.append('file',selectedFile);
+    const hResp=await fetch(`${apiUrl}/caption_with_heatmap`,{method:'POST',body:fd2});
+    if (hResp.ok) {
+      const hData=await hResp.json();
+      if (hData.heatmap_base64) {
+        document.getElementById('heatmapImg').src='data:image/png;base64,'+hData.heatmap_base64;
+        document.getElementById('heatmapCard').style.display='block';
+      }
+    }
+  } catch(err) { alert('Error: '+err.message+'\n\nCheck that backend API is running and URL is correct.'); }
+  finally { btn.disabled=false; spinner.style.display='none'; }
+}
+</script>
+</body>
+</html>

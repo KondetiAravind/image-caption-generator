@@ -7,3 +7,4 @@ outputs/
 data/cleaned_flickr30k.csv
 data/train.csv
 data/val.csv
+models/best_model.pth

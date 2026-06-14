@@ -1,0 +1,9 @@
+images/
+__pycache__/
+*.pyc
+*.pth
+outputs/
+.env
+data/cleaned_flickr30k.csv
+data/train.csv
+data/val.csv

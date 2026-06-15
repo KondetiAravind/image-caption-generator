@@ -3,124 +3,257 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Image Caption Generator</title>
+<title>Image Caption Generator | Aravind Kondeti</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', sans-serif; background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
-  header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 2rem; text-align: center; border-bottom: 1px solid #2a2a4a; }
-  header h1 { font-size: 2rem; color: #7c83fd; margin-bottom: 0.5rem; }
-  header p  { color: #888; font-size: 0.95rem; }
-  .container { max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
-  .upload-box { border: 2px dashed #7c83fd; border-radius: 16px; padding: 3rem 2rem;
-                text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a2e; }
-  .upload-box:hover { border-color: #a29bfe; background: #1e1e35; }
-  .upload-box input { display: none; }
-  .upload-box .icon { font-size: 3rem; margin-bottom: 1rem; }
-  .upload-box p { color: #888; }
-  #preview { width: 100%; max-height: 400px; object-fit: contain; border-radius: 12px; margin-top: 1.5rem; display: none; }
-  .btn { background: linear-gradient(135deg, #7c83fd, #a29bfe); color: white;
-         border: none; padding: 0.85rem 2.5rem; border-radius: 50px; font-size: 1rem;
-         cursor: pointer; margin-top: 1.5rem; width: 100%; transition: opacity 0.2s; }
-  .btn:hover { opacity: 0.9; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .results { margin-top: 2rem; display: none; }
-  .card { background: #1a1a2e; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid #2a2a4a; }
-  .card h3 { color: #7c83fd; margin-bottom: 0.75rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
-  .caption-text { font-size: 1.1rem; color: #e0e0e0; line-height: 1.6; }
-  .translations { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 0.75rem; }
-  .trans-item { background: #0f0f1a; border-radius: 8px; padding: 0.75rem; }
-  .trans-item .lang { font-size: 0.75rem; color: #7c83fd; margin-bottom: 0.3rem; }
-  .trans-item .text { font-size: 0.9rem; }
-  .heatmap img { width: 100%; border-radius: 8px; }
-  .spinner { display: none; text-align: center; padding: 2rem; color: #7c83fd; font-size: 1.1rem; }
-  .metrics { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
-  .metric-badge { background: #0f0f1a; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid #2a2a4a; }
-  .metric-badge span { color: #7c83fd; font-weight: bold; }
-  .api-url { background: #1a1a2e; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; border: 1px solid #2a2a4a; display:flex; align-items:center; gap:0.5rem; }
-  .api-url input { background: none; border: none; color: #a29bfe; flex:1; font-family: monospace; outline: none; font-size:0.9rem; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#080b14;color:#e2e8f0;min-height:100vh}
+
+/* NAV */
+nav{display:flex;justify-content:space-between;align-items:center;padding:1.2rem 3rem;
+    background:rgba(8,11,20,0.95);backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;z-index:100}
+.nav-logo{font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:-0.3px}
+.nav-logo span{color:#6366f1}
+.nav-links{display:flex;gap:2rem;align-items:center}
+.nav-links a{color:#94a3b8;text-decoration:none;font-size:0.9rem;font-weight:500;
+             transition:color 0.2s}
+.nav-links a:hover{color:#fff}
+.nav-links .btn-nav{background:#6366f1;color:#fff;padding:0.5rem 1.2rem;
+                    border-radius:8px;font-size:0.85rem;transition:background 0.2s}
+.nav-links .btn-nav:hover{background:#4f46e5;color:#fff}
+
+/* HERO */
+.hero{text-align:center;padding:5rem 1rem 3rem}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(99,102,241,0.12);
+            border:1px solid rgba(99,102,241,0.3);border-radius:50px;padding:0.4rem 1rem;
+            font-size:0.8rem;color:#a5b4fc;margin-bottom:1.5rem}
+.hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:700;letter-spacing:-1px;
+         line-height:1.15;margin-bottom:1rem}
+.hero h1 span{background:linear-gradient(135deg,#6366f1,#a78bfa,#06b6d4);
+              -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:#64748b;font-size:1.05rem;max-width:520px;margin:0 auto 2rem;line-height:1.7}
+.tech-pills{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:3rem}
+.pill{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+      border-radius:50px;padding:0.35rem 0.9rem;font-size:0.78rem;color:#94a3b8}
+
+/* METRICS */
+.metrics-row{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;
+             margin-bottom:3.5rem;max-width:700px;margin-left:auto;margin-right:auto}
+.metric{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);
+        border-radius:12px;padding:1rem 1.5rem;text-align:center;flex:1;min-width:120px}
+.metric .val{font-size:1.6rem;font-weight:700;color:#6366f1}
+.metric .lbl{font-size:0.72rem;color:#64748b;margin-top:0.2rem;text-transform:uppercase;letter-spacing:0.5px}
+
+/* MAIN CARD */
+.main-card{max-width:780px;margin:0 auto 4rem;padding:0 1rem}
+.upload-area{border:2px dashed rgba(99,102,241,0.35);border-radius:20px;
+             padding:3.5rem 2rem;text-align:center;cursor:pointer;
+             transition:all 0.3s;background:rgba(99,102,241,0.04);position:relative}
+.upload-area:hover{border-color:#6366f1;background:rgba(99,102,241,0.08)}
+.upload-area input{display:none}
+.upload-icon{width:60px;height:60px;background:rgba(99,102,241,0.15);border-radius:16px;
+             display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;font-size:1.8rem}
+.upload-area h3{font-size:1.05rem;font-weight:600;margin-bottom:0.4rem}
+.upload-area p{color:#64748b;font-size:0.88rem}
+
+#preview{width:100%;max-height:420px;object-fit:contain;border-radius:16px;
+         margin-top:1.5rem;display:none;border:1px solid rgba(255,255,255,0.08)}
+
+.generate-btn{width:100%;margin-top:1.2rem;padding:1rem;border:none;border-radius:14px;
+              background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;
+              font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;
+              letter-spacing:0.3px}
+.generate-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 25px rgba(99,102,241,0.35)}
+.generate-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+
+.spinner{display:none;text-align:center;padding:1.5rem;color:#6366f1;font-size:0.95rem}
+.spinner-dots{display:inline-flex;gap:4px;margin-right:8px}
+.spinner-dots span{width:6px;height:6px;background:#6366f1;border-radius:50%;
+                   animation:bounce 0.8s infinite alternate}
+.spinner-dots span:nth-child(2){animation-delay:0.2s}
+.spinner-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+
+/* RESULTS */
+.results{margin-top:1.5rem;display:none}
+.result-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);
+             border-radius:16px;padding:1.5rem;margin-bottom:1rem}
+.result-card .card-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;
+                          color:#6366f1;font-weight:600;margin-bottom:0.7rem;
+                          display:flex;align-items:center;gap:0.4rem}
+.caption-output{font-size:1.05rem;line-height:1.7;color:#e2e8f0;
+                background:rgba(0,0,0,0.2);border-radius:10px;padding:1rem 1.2rem}
+.trans-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:0.75rem}
+.trans-item{background:rgba(0,0,0,0.2);border-radius:10px;padding:0.85rem}
+.trans-lang{font-size:0.7rem;color:#6366f1;font-weight:600;text-transform:uppercase;
+            letter-spacing:0.5px;margin-bottom:0.3rem}
+.trans-text{font-size:0.9rem;color:#cbd5e1;line-height:1.4}
+.heatmap-img{width:100%;border-radius:12px;margin-top:0.5rem}
+
+/* FOOTER */
+footer{border-top:1px solid rgba(255,255,255,0.06);padding:3rem 1rem;text-align:center}
+.footer-name{font-size:1.1rem;font-weight:700;margin-bottom:0.4rem}
+.footer-name span{color:#6366f1}
+.footer-sub{color:#475569;font-size:0.85rem;margin-bottom:1.5rem}
+.social-links{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.social-links a{display:flex;align-items:center;gap:0.5rem;color:#94a3b8;text-decoration:none;
+                background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+                border-radius:10px;padding:0.6rem 1.1rem;font-size:0.85rem;
+                transition:all 0.2s}
+.social-links a:hover{color:#fff;border-color:rgba(99,102,241,0.5);background:rgba(99,102,241,0.1)}
+.footer-copy{margin-top:2rem;color:#334155;font-size:0.8rem}
 </style>
 </head>
 <body>
-<header>
-  <h1>🖼 Image Caption Generator</h1>
-  <p>InceptionV3 + Bahdanau Attention + LSTM &nbsp;·&nbsp; Trained on Flickr30k</p>
-</header>
-<div class="container">
 
-  <div class="api-url">
-    🔌 <input id="apiUrl" value="https://image-caption-api-nhya.onrender.com" placeholder="Backend API URL"/>
+<nav>
+  <div class="nav-logo">Aravind <span>Kondeti</span></div>
+  <div class="nav-links">
+    <a href="https://aravind-portfolio-tau.vercel.app" target="_blank">Portfolio</a>
+    <a href="https://github.com/KondetiAravind" target="_blank">GitHub</a>
+    <a href="https://www.linkedin.com/in/aravind-kondeti/" target="_blank" class="btn-nav">LinkedIn</a>
   </div>
+</nav>
 
-  <div class="card" style="margin-bottom:1.5rem">
-    <h3>Model Performance</h3>
-    <div class="metrics">
-      <div class="metric-badge">BLEU-1 Beam <span>0.4637</span></div>
-      <div class="metric-badge">BLEU-4 Beam <span>0.0820</span></div>
-      <div class="metric-badge">BLEU-1 Greedy <span>0.3592</span></div>
-      <div class="metric-badge">METEOR <span>0.2750</span></div>
-      <div class="metric-badge">Vocab <span>6,988</span></div>
-      <div class="metric-badge">Dataset <span>Flickr30k</span></div>
-    </div>
+<section class="hero">
+  <div class="hero-badge">🤖 Deep Learning Project</div>
+  <h1>Image <span>Caption Generator</span></h1>
+  <p>Upload any image and get AI-generated captions with attention visualization and multilingual translations.</p>
+  <div class="tech-pills">
+    <span class="pill">InceptionV3</span>
+    <span class="pill">Bahdanau Attention</span>
+    <span class="pill">LSTM Decoder</span>
+    <span class="pill">Flickr30k</span>
+    <span class="pill">Beam Search</span>
+    <span class="pill">FastAPI</span>
   </div>
+  <div class="metrics-row">
+    <div class="metric"><div class="val">0.464</div><div class="lbl">BLEU-1 Beam</div></div>
+    <div class="metric"><div class="val">0.082</div><div class="lbl">BLEU-4 Beam</div></div>
+    <div class="metric"><div class="val">0.275</div><div class="lbl">METEOR</div></div>
+    <div class="metric"><div class="val">6,988</div><div class="lbl">Vocab Size</div></div>
+    <div class="metric"><div class="val">31K</div><div class="lbl">Images</div></div>
+  </div>
+</section>
 
-  <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+<div class="main-card">
+  <div class="upload-area" onclick="document.getElementById('fileInput').click()">
     <input type="file" id="fileInput" accept="image/*" onchange="onFileSelect(event)"/>
-    <div class="icon">📷</div>
-    <p>Click to upload an image</p>
-    <p style="font-size:0.8rem;margin-top:0.5rem">JPG, PNG, WEBP supported</p>
+    <div class="upload-icon">🖼</div>
+    <h3>Drop an image or click to upload</h3>
+    <p>JPG, PNG, WEBP · Any real-world photo works best</p>
+    <img id="preview"/>
   </div>
-  <img id="preview"/>
-  <button class="btn" id="generateBtn" onclick="generateCaption()" disabled>✨ Generate Caption</button>
-  <div class="spinner" id="spinner">⏳ Generating caption, please wait...</div>
+
+  <button class="generate-btn" id="generateBtn" onclick="generateCaption()" disabled>
+    ✨ Generate Caption
+  </button>
+
+  <div class="spinner" id="spinner">
+    <span class="spinner-dots"><span></span><span></span><span></span></span>
+    Generating caption, please wait…
+  </div>
 
   <div class="results" id="results">
-    <div class="card"><h3>📝 Beam Search Caption (k=5)</h3><div class="caption-text" id="beamCaption"></div></div>
-    <div class="card"><h3>📝 Greedy Caption</h3><div class="caption-text" id="greedyCaption"></div></div>
-    <div class="card"><h3>🌍 Translations</h3><div class="translations" id="translations"></div></div>
-    <div class="card" id="heatmapCard" style="display:none"><h3>🔥 Attention Heatmap</h3><img id="heatmapImg"/></div>
+    <div class="result-card">
+      <div class="card-label">🎯 Beam Search Caption (k=5)</div>
+      <div class="caption-output" id="beamCaption"></div>
+    </div>
+    <div class="result-card">
+      <div class="card-label">⚡ Greedy Caption</div>
+      <div class="caption-output" id="greedyCaption"></div>
+    </div>
+    <div class="result-card">
+      <div class="card-label">🌍 Multilingual Translations</div>
+      <div class="trans-grid" id="translations"></div>
+    </div>
+    <div class="result-card" id="heatmapCard" style="display:none">
+      <div class="card-label">🔥 Attention Heatmap</div>
+      <img class="heatmap-img" id="heatmapImg"/>
+    </div>
   </div>
 </div>
+
+<footer>
+  <div class="footer-name">Aravind <span>Kondeti</span></div>
+  <div class="footer-sub">ML Engineer · IIT Bhubaneswar</div>
+  <div class="social-links">
+    <a href="https://aravind-portfolio-tau.vercel.app" target="_blank">🌐 Portfolio</a>
+    <a href="https://github.com/KondetiAravind" target="_blank">💻 GitHub</a>
+    <a href="https://github.com/KondetiAravind/image-caption-generator" target="_blank">📁 Source Code</a>
+    <a href="https://www.linkedin.com/in/aravind-kondeti/" target="_blank">🔗 LinkedIn</a>
+  </div>
+  <div class="footer-copy">Built with PyTorch · FastAPI · Vercel · Flickr30k Dataset</div>
+</footer>
+
 <script>
+const API = "https://image-caption-api-nhya.onrender.com";
 let selectedFile = null;
+
 function onFileSelect(e) {
   selectedFile = e.target.files[0];
   if (!selectedFile) return;
   const reader = new FileReader();
-  reader.onload = ev => { const p=document.getElementById('preview'); p.src=ev.target.result; p.style.display='block'; };
+  reader.onload = ev => {
+    const p = document.getElementById('preview');
+    p.src = ev.target.result;
+    p.style.display = 'block';
+  };
   reader.readAsDataURL(selectedFile);
   document.getElementById('generateBtn').disabled = false;
   document.getElementById('results').style.display = 'none';
   document.getElementById('heatmapCard').style.display = 'none';
 }
+
 async function generateCaption() {
   if (!selectedFile) return;
-  const apiUrl = document.getElementById('apiUrl').value.trim();
-  const btn=document.getElementById('generateBtn'), spinner=document.getElementById('spinner'), results=document.getElementById('results');
-  btn.disabled=true; spinner.style.display='block'; results.style.display='none';
+  const btn     = document.getElementById('generateBtn');
+  const spinner = document.getElementById('spinner');
+  const results = document.getElementById('results');
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  results.style.display = 'none';
   try {
-    const fd=new FormData(); fd.append('file', selectedFile);
-    const resp = await fetch(`${apiUrl}/caption?beam_size=5&translate=true`, {method:'POST',body:fd});
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+    const resp = await fetch(`${API}/caption?beam_size=5&translate=true`, {method:'POST', body:fd});
     if (!resp.ok) throw new Error(await resp.text());
     const data = await resp.json();
+
     document.getElementById('beamCaption').textContent   = data.beam   || '—';
     document.getElementById('greedyCaption').textContent = data.greedy || '—';
-    const transDiv=document.getElementById('translations'); transDiv.innerHTML='';
+
+    const transDiv = document.getElementById('translations');
+    transDiv.innerHTML = '';
     if (data.translations) {
-      for (const [lang,text] of Object.entries(data.translations))
-        transDiv.innerHTML+=`<div class="trans-item"><div class="lang">${lang}</div><div class="text">${text}</div></div>`;
-    }
-    results.style.display='block';
-    const fd2=new FormData(); fd2.append('file',selectedFile);
-    const hResp=await fetch(`${apiUrl}/caption_with_heatmap`,{method:'POST',body:fd2});
-    if (hResp.ok) {
-      const hData=await hResp.json();
-      if (hData.heatmap_base64) {
-        document.getElementById('heatmapImg').src='data:image/png;base64,'+hData.heatmap_base64;
-        document.getElementById('heatmapCard').style.display='block';
+      for (const [lang, text] of Object.entries(data.translations)) {
+        transDiv.innerHTML += `
+          <div class="trans-item">
+            <div class="trans-lang">${lang}</div>
+            <div class="trans-text">${text}</div>
+          </div>`;
       }
     }
-  } catch(err) { alert('Error: '+err.message+'\n\nCheck that backend API is running and URL is correct.'); }
-  finally { btn.disabled=false; spinner.style.display='none'; }
+    results.style.display = 'block';
+
+    // Heatmap
+    const fd2 = new FormData();
+    fd2.append('file', selectedFile);
+    const hResp = await fetch(`${API}/caption_with_heatmap`, {method:'POST', body:fd2});
+    if (hResp.ok) {
+      const hData = await hResp.json();
+      if (hData.heatmap_base64) {
+        document.getElementById('heatmapImg').src = 'data:image/png;base64,' + hData.heatmap_base64;
+        document.getElementById('heatmapCard').style.display = 'block';
+      }
+    }
+  } catch(err) {
+    alert('Error: ' + err.message + '\n\nThe backend may be waking up (free tier). Please wait 30 seconds and try again.');
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+  }
 }
 </script>
 </body>
